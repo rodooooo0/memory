@@ -1,0 +1,216 @@
+ import java.applet.*;
+import java.awt.*;
+
+public class ControlPanel extends Frame {
+    private Kernel kernel;
+
+    private static final int PAGE_COUNT = 64;
+
+    Button runButton, stepButton, resetButton, exitButton;
+    Button[] pageButtons = new Button[PAGE_COUNT];
+
+    Label statusValueLabel, timeValueLabel, instructionValueLabel,
+            addressValueLabel, pageFaultValueLabel, virtualPageValueLabel,
+            physicalPageValueLabel, RValueLabel, MValueLabel,
+            inMemTimeValueLabel, lastTouchTimeValueLabel,
+            lowValueLabel, highValueLabel;
+
+    Label[] physicalLabels = new Label[PAGE_COUNT];
+
+    Label segmentLabel, pageInputValueLabel;
+
+    public ControlPanel() {
+        super();
+        setLayout(null);
+        setBackground(Color.white);
+        setForeground(Color.black);
+        setFont(new Font("Courier", Font.PLAIN, 12));
+        setSize(760, 640);
+        initUI();
+    }
+
+    private void initUI() {
+        // Botones principales
+        runButton = makeButton("run", 10, 10);
+        stepButton = makeButton("step", 90, 10);
+        resetButton = makeButton("reset", 170, 10);
+        exitButton = makeButton("exit", 250, 10);
+
+        // Botones de páginas
+        int[] colX = {10, 140};
+        for (int i = 0; i < PAGE_COUNT; i++) {
+            int col = (i < 32) ? 0 : 1;
+            int row = i % 32;
+            pageButtons[i] = makePageButton("page " + i, colX[col], (row + 2) * 15 + 25);
+        }
+
+        // Labels de páginas físicas
+        for (int i = 0; i < PAGE_COUNT; i++) {
+            int x = (i < 32) ? 75 : 205;
+            int y = ((i < 32) ? i : i - 32) + 2;
+            physicalLabels[i] = makePhysicalLabel(x, y * 15 + 25);
+        }
+
+        // Labels de estado
+        statusValueLabel = makeLabel("STOP", 400, 10, 140, 15);
+        timeValueLabel = makeLabel("0", 400, 30, 140, 15);
+        instructionValueLabel = makeLabel("NONE", 400, 60, 230, 15);
+        addressValueLabel = makeLabel("NULL", 400, 80, 230, 15);
+        pageFaultValueLabel = makeLabel("NO", 400, 110, 140, 15);
+        virtualPageValueLabel = makeLabel("x", 400, 130, 230, 15);
+        physicalPageValueLabel = makeLabel("0", 400, 150, 230, 15);
+        RValueLabel = makeLabel("0", 400, 170, 230, 15);
+        MValueLabel = makeLabel("0", 400, 190, 230, 15);
+        inMemTimeValueLabel = makeLabel("0", 400, 210, 230, 15);
+        lastTouchTimeValueLabel = makeLabel("0", 400, 230, 230, 15);
+        lowValueLabel = makeLabel("0", 400, 250, 230, 15);
+        highValueLabel = makeLabel("0", 400, 270, 230, 15);
+
+        // Segmento y páginas
+        segmentLabel = makeLabel("", 400, 295, 230, 18);
+        segmentLabel.setFont(new Font("Courier", Font.BOLD, 14));
+        pageInputValueLabel = makeLabel("", 400, 315, 230, 15);
+
+        // Labels fijos (textos estáticos)
+        String[][] fixedLabels = {
+                {"status: ", "340", "10"},
+                {"time: ", "340", "30"},
+                {"instruction: ", "340", "60"},
+                {"address: ", "340", "80"},
+                {"page fault: ", "340", "110"},
+                {"virtual page: ", "340", "130"},
+                {"physical page: ", "340", "150"},
+                {"R: ", "340", "170"},
+                {"M: ", "340", "190"},
+                {"inMemTime: ", "340", "210"},
+                {"lastTouchTime: ", "340", "230"},
+                {"low: ", "340", "250"},
+                {"high: ", "340", "270"},
+                {"Segmento:", "340", "295"},
+                {"Pagina(s):", "340", "315"}
+        };
+
+        for (String[] lbl : fixedLabels) {
+            add(makeLabel(lbl[0], Integer.parseInt(lbl[1]), Integer.parseInt(lbl[2]), 90, 15));
+        }
+
+        show();
+    }
+
+    private Button makeButton(String text, int x, int y) {
+        Button b = new Button(text);
+        b.setBounds(x, y, 70, 20);
+        b.setForeground(Color.blue);
+        b.setBackground(Color.lightGray);
+        add(b);
+        return b;
+    }
+
+    private Button makePageButton(String text, int x, int y) {
+        Button b = new Button(text);
+        b.setBounds(x, y, 70, 15);
+        b.setForeground(Color.magenta);
+        b.setBackground(Color.lightGray);
+        add(b);
+        return b;
+    }
+
+    private Label makePhysicalLabel(int x, int y) {
+        Label l = new Label("", Label.CENTER);
+        l.setBounds(x, y, 60, 15);
+        l.setForeground(Color.red);
+        l.setFont(new Font("Courier", Font.PLAIN, 10));
+        add(l);
+        return l;
+    }
+
+    private Label makeLabel(String text, int x, int y, int w, int h) {
+        Label l = new Label(text, Label.LEFT);
+        l.setBounds(x, y, w, h);
+        add(l);
+        return l;
+    }
+
+    public void init(Kernel useKernel, String commands, String config) {
+        this.kernel = useKernel;
+        kernel.setControlPanel(this);
+        kernel.init(commands, config);
+        show();
+    }
+
+    public void paintPage(Page page) {
+        if (page == null) return;
+        virtualPageValueLabel.setText(Integer.toString(page.id));
+        physicalPageValueLabel.setText(Integer.toString(page.physical));
+        RValueLabel.setText(Integer.toString(page.R));
+        MValueLabel.setText(Integer.toString(page.M));
+        inMemTimeValueLabel.setText(Integer.toString(page.inMemTime));
+        lastTouchTimeValueLabel.setText(Integer.toString(page.lastTouchTime));
+        lowValueLabel.setText(Long.toString(page.low, Kernel.addressradix));
+        highValueLabel.setText(Long.toString(page.high, Kernel.addressradix));
+    }
+
+    public void addPhysicalPage(int pageNum, int physicalPage) {
+        if (isValidPhysical(physicalPage)) {
+            physicalLabels[physicalPage].setText("page " + pageNum);
+        }
+    }
+
+    public void removePhysicalPage(int physicalPage) {
+        if (isValidPhysical(physicalPage)) {
+            physicalLabels[physicalPage].setText("");
+        }
+    }
+
+    public void clearPhysicalPage(int physicalPage) {
+        removePhysicalPage(physicalPage);
+    }
+
+    public void setStatus(String status) {
+        if (statusValueLabel != null) statusValueLabel.setText(status);
+    }
+
+    private boolean isValidPhysical(int physicalPage) {
+        return physicalPage >= 0 && physicalPage < physicalLabels.length;
+    }
+
+    public boolean action(Event e, Object arg) {
+        if (e.target == runButton) {
+            setStatus("RUN");
+            runButton.setEnabled(false);
+            stepButton.setEnabled(false);
+            resetButton.setEnabled(false);
+            if (kernel != null) {
+                if (!kernel.isAlive()) {
+                    kernel.start(); // arranca el hilo en background
+                } else {
+                    setStatus("Kernel ya en ejecución");
+                }
+            }
+            setStatus("STOP");
+            resetButton.setEnabled(true);
+            return true;
+        } else if (e.target == stepButton) {
+            setStatus("STEP");
+            if (kernel != null) kernel.step();
+            setStatus("STOP");
+            return true;
+        } else if (e.target == resetButton) {
+            if (kernel != null) kernel.reset();
+            runButton.setEnabled(true);
+            stepButton.setEnabled(true);
+            return true;
+        } else if (e.target == exitButton) {
+            System.exit(0);
+            return true;
+        } else {
+            for (int i = 0; i < pageButtons.length; i++) {
+                if (e.target == pageButtons[i]) {
+                    if (kernel != null) kernel.getPage(i);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+}
