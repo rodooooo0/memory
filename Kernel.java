@@ -8,22 +8,22 @@ public class Kernel extends Thread
   // dependencies in the GUI
   private static int virtPageNum = 63;
 
-  // SEGMENTOS: define aquí la distribución de páginas por segmento
+  // SEGMENTOS: define aqui la distribucion de paginas por segmento
   public static final int[][] SEGMENTS = {
-    // S1: páginas 0-2
+    // S1: paginas 0-2
     {0,1,2},
-    // S2: páginas 3-8
+    // S2: paginas 3-8
     {3,4,5,6,7,8},
-    // S3: páginas 9-14
+    // S3: paginas 9-14
     {9,10,11,12,13,14},
-    // S4: páginas 15-22
+    // S4: paginas 15-22
     {15,16,17,18,19,20,21,22},
-    // S5: páginas 23-31
+    // S5: paginas 23-31
     {23,24,25,26,27,28,29,30,31}
   };
 
   private String output = null;
-  private static final String lineSeparator = 
+  private static final String lineSeparator =
     System.getProperty("line.separator");
   private String command_file;
   private String config_file;
@@ -41,8 +41,11 @@ public class Kernel extends Thread
   // NUEVO: para mostrar el segmento actual en la GUI
   public int currentSegment = -1;
 
-  public void init( String commands , String config )  
+  public void init( String commands , String config )
   {
+    // Debug: show which files were requested
+    System.out.println("Kernel.init: commands=" + commands + " config=" + config);
+
     File f = new File( commands );
     command_file = commands;
     config_file = config;
@@ -64,19 +67,19 @@ public class Kernel extends Thread
     long low = 0;
     long addr = 0;
     long address_limit = (block * virtPageNum+1)-1;
-  
+
     if ( config != null )
     {
       f = new File ( config );
-      try 
+      try
       {
         DataInputStream in = new DataInputStream(new FileInputStream(f));
-        while ((line = in.readLine()) != null) 
+        while ((line = in.readLine()) != null)
         {
-          if (line.startsWith("numpages")) 
-          { 
+          if (line.startsWith("numpages"))
+          {
             StringTokenizer st = new StringTokenizer(line);
-            while (st.hasMoreTokens()) 
+            while (st.hasMoreTokens())
             {
               tmp = st.nextToken();
               virtPageNum = Common.s2i(st.nextToken()) - 1;
@@ -91,31 +94,31 @@ public class Kernel extends Thread
         }
         in.close();
       } catch (IOException e) { /* Handle exceptions */ }
-      for (i = 0; i <= virtPageNum; i++) 
+      for (i = 0; i <= virtPageNum; i++)
       {
         high = (block * (i + 1))-1;
         low = block * i;
         memVector.addElement(new Page(i, -1, R, M, 0, 0, high, low));
       }
-      try 
+      try
       {
         DataInputStream in = new DataInputStream(new FileInputStream(f));
-        while ((line = in.readLine()) != null) 
+        while ((line = in.readLine()) != null)
 
         {
-          if (line.startsWith("memset")) 
-          { 
+          if (line.startsWith("memset"))
+          {
             StringTokenizer st = new StringTokenizer(line);
             st.nextToken();
-            while (st.hasMoreTokens()) 
-            { 
+            while (st.hasMoreTokens())
+            {
               id = Common.s2i(st.nextToken());
               tmp = st.nextToken();
-              if (tmp.startsWith("x")) 
+              if (tmp.startsWith("x"))
               {
                 physical = -1;
-              } 
-              else 
+              }
+              else
               {
                 physical = Common.s2i(tmp);
               }
@@ -156,21 +159,21 @@ public class Kernel extends Thread
               page.lastTouchTime = lastTouchTime;
             }
           }
-          if (line.startsWith("enable_logging")) 
-          { 
+          if (line.startsWith("enable_logging"))
+          {
             StringTokenizer st = new StringTokenizer(line);
-            while (st.hasMoreTokens()) 
+            while (st.hasMoreTokens())
             {
               if ( st.nextToken().startsWith( "true" ) )
               {
                 doStdoutLog = true;
-              }              
+              }
             }
           }
-          if (line.startsWith("log_file")) 
-          { 
+          if (line.startsWith("log_file"))
+          {
             StringTokenizer st = new StringTokenizer(line);
-            while (st.hasMoreTokens()) 
+            while (st.hasMoreTokens())
             {
               tmp = st.nextToken();
             }
@@ -178,7 +181,7 @@ public class Kernel extends Thread
             {
               doFileLog = false;
               output = "tracefile";
-            }              
+            }
             else
             {
               doFileLog = true;
@@ -186,10 +189,10 @@ public class Kernel extends Thread
               output = tmp;
             }
           }
-          if (line.startsWith("pagesize")) 
-          { 
+          if (line.startsWith("pagesize"))
+          {
             StringTokenizer st = new StringTokenizer(line);
-            while (st.hasMoreTokens()) 
+            while (st.hasMoreTokens())
             {
               tmp = st.nextToken();
               tmp = st.nextToken();
@@ -200,7 +203,7 @@ public class Kernel extends Thread
               }
               else
               {
-                block = Long.parseLong(tmp,10);             
+                block = Long.parseLong(tmp,10);
               }
               address_limit = (block * virtPageNum+1)-1;
             }
@@ -209,17 +212,17 @@ public class Kernel extends Thread
               System.out.println("MemoryManagement: pagesize is out of bounds");
               System.exit(-1);
             }
-            for (i = 0; i <= virtPageNum; i++) 
+            for (i = 0; i <= virtPageNum; i++)
             {
               Page page = (Page) memVector.elementAt(i);
               page.high = (block * (i + 1))-1;
               page.low = block * i;
             }
           }
-          if (line.startsWith("addressradix")) 
-          { 
+          if (line.startsWith("addressradix"))
+          {
             StringTokenizer st = new StringTokenizer(line);
-            while (st.hasMoreTokens()) 
+            while (st.hasMoreTokens())
             {
               tmp = st.nextToken();
               tmp = st.nextToken();
@@ -236,74 +239,74 @@ public class Kernel extends Thread
       } catch (IOException e) { /* Handle exceptions */ }
     }
     f = new File ( commands );
-    try 
+    try
     {
       DataInputStream in = new DataInputStream(new FileInputStream(f));
-      while ((line = in.readLine()) != null) 
+      while ((line = in.readLine()) != null)
       {
-        if (line.startsWith("READ") || line.startsWith("WRITE")) 
+        if (line.startsWith("READ") || line.startsWith("WRITE"))
         {
-          if (line.startsWith("READ")) 
+          if (line.startsWith("READ"))
           {
             command = "READ";
           }
-          if (line.startsWith("WRITE")) 
+          if (line.startsWith("WRITE"))
           {
             command = "WRITE";
           }
           StringTokenizer st = new StringTokenizer(line);
           tmp = st.nextToken();
           tmp = st.nextToken();
-          if (tmp.startsWith("random")) 
+          if (tmp.startsWith("random"))
           {
             instructVector.addElement(new Instruction(command,Common.randomLong( address_limit )));
-          } 
-          else 
-          { 
-            // NUEVO: soporta rangos tipo hex 1000-2fff
-            if (tmp.indexOf('-') > -1) {
+          }
+          else
+          {
+            // soporta rangos tipo hex 1000-2fff y otras bases
+            if (tmp.indexOf('-') > -1 && !tmp.startsWith("bin") && !tmp.startsWith("oct") && !tmp.startsWith("hex")) {
               String[] parts = tmp.split("-");
               long start = Long.parseLong(parts[0],16);
               long end = Long.parseLong(parts[1],16);
               instructVector.addElement(new Instruction(command,start,end));
             } else {
               if ( tmp.startsWith( "bin" ) || tmp.startsWith( "oct" ) || tmp.startsWith( "hex" ) ) {
-    String value = st.nextToken();
-    if (value.contains("-")) {
-        String[] parts = value.split("-");
-        long start, end;
-        if (tmp.startsWith("bin")) {
-            start = Long.parseLong(parts[0],2);
-            end = Long.parseLong(parts[1],2);
-        } else if (tmp.startsWith("oct")) {
-            start = Long.parseLong(parts[0],8);
-            end = Long.parseLong(parts[1],8);
-        } else { // hex
-            start = Long.parseLong(parts[0],16);
-            end = Long.parseLong(parts[1],16);
-        }
-        instructVector.addElement(new Instruction(command, start, end));
-    } else {
-        if (tmp.startsWith("bin")) {
-            addr = Long.parseLong(value,2);
-        } else if (tmp.startsWith("oct")) {
-            addr = Long.parseLong(value,8);
-        } else {
-            addr = Long.parseLong(value,16);
-        }
-        instructVector.addElement(new Instruction(command, addr));
-    }
-} else {
-    if (tmp.contains("-")) {
-        String[] parts = tmp.split("-");
-        long start = Long.parseLong(parts[0]);
-        long end = Long.parseLong(parts[1]);
-        instructVector.addElement(new Instruction(command, start, end));
-    } else {
-        addr = Long.parseLong(tmp);
-        instructVector.addElement(new Instruction(command, addr));
-    }
-}
+                String value = st.nextToken();
+                if (value.contains("-")) {
+                    String[] parts = value.split("-");
+                    long start, end;
+                    if (tmp.startsWith("bin")) {
+                        start = Long.parseLong(parts[0],2);
+                        end = Long.parseLong(parts[1],2);
+                    } else if (tmp.startsWith("oct")) {
+                        start = Long.parseLong(parts[0],8);
+                        end = Long.parseLong(parts[1],8);
+                    } else { // hex
+                        start = Long.parseLong(parts[0],16);
+                        end = Long.parseLong(parts[1],16);
+                    }
+                    instructVector.addElement(new Instruction(command, start, end));
+                } else {
+                    if (tmp.startsWith("bin")) {
+                        addr = Long.parseLong(value,2);
+                    } else if (tmp.startsWith("oct")) {
+                        addr = Long.parseLong(value,8);
+                    } else {
+                        addr = Long.parseLong(value,16);
+                    }
+                    instructVector.addElement(new Instruction(command, addr));
+                }
+              } else {
+                if (tmp.contains("-")) {
+                    String[] parts = tmp.split("-");
+                    long start = Long.parseLong(parts[0]);
+                    long end = Long.parseLong(parts[1]);
+                    instructVector.addElement(new Instruction(command, start, end));
+                } else {
+                    addr = Long.parseLong(tmp);
+                    instructVector.addElement(new Instruction(command, addr));
+                }
+              }
             }
           }
         }
@@ -314,7 +317,7 @@ public class Kernel extends Thread
     if ( runcycles < 1 )
     {
       System.out.println("MemoryManagement: no instructions present for execution.");
-      System.exit(-1);
+      // keep running but don't exit; leave for UI to show error
     }
     if ( doFileLog )
     {
@@ -322,14 +325,14 @@ public class Kernel extends Thread
       trace.delete();
     }
     runs = 0;
-    for (i = 0; i < virtPageNum; i++) 
+    for (i = 0; i < virtPageNum; i++)
     {
       Page page = (Page) memVector.elementAt(i);
       if ( page.physical != -1 )
       {
         map_count++;
       }
-      for (j = 0; j < virtPageNum; j++) 
+      for (j = 0; j < virtPageNum; j++)
       {
         Page tmp_page = (Page) memVector.elementAt(j);
         if (tmp_page.physical == page.physical && page.physical >= 0)
@@ -346,7 +349,7 @@ public class Kernel extends Thread
     }
     if ( map_count < ( virtPageNum +1 ) / 2 )
     {
-      for (i = 0; i < virtPageNum; i++) 
+      for (i = 0; i < virtPageNum; i++)
       {
         Page page = (Page) memVector.elementAt(i);
         if ( page.physical == -1 && map_count < ( virtPageNum + 1 ) / 2 )
@@ -356,19 +359,19 @@ public class Kernel extends Thread
         }
       }
     }
-    for (i = 0; i < virtPageNum; i++) 
+    for (i = 0; i < virtPageNum; i++)
     {
       Page page = (Page) memVector.elementAt(i);
-      if (page.physical == -1) 
+      if (page.physical == -1)
       {
         controlPanel.removePhysicalPage( i );
-      } 
+      }
       else
       {
         controlPanel.addPhysicalPage( i , page.physical );
       }
     }
-    for (i = 0; i < instructVector.size(); i++) 
+    for (i = 0; i < instructVector.size(); i++)
     {
       high = block * virtPageNum;
       Instruction instruct = ( Instruction ) instructVector.elementAt( i );
@@ -378,20 +381,52 @@ public class Kernel extends Thread
         System.exit(-1);
       }
     }
-  } 
 
-  public void setControlPanel(ControlPanel newControlPanel) 
+    // Debug: show counts after init
+    System.out.println("Kernel.init: memVector.size=" + (memVector==null?0:memVector.size())
+        + " instructVector.size=" + (instructVector==null?0:instructVector.size()));
+  }
+
+  public void setControlPanel(ControlPanel newControlPanel)
   {
     controlPanel = newControlPanel ;
   }
 
-  public void getPage(int pageNum) 
+  // Replaced getPage with bounds-checked version
+  public void getPage(int pageNum)
   {
+    // Evitar acceso fuera de rango si memVector no está inicializado o vacío
+    if (memVector == null || pageNum < 0 || pageNum >= memVector.size()) {
+      if (controlPanel != null) {
+        controlPanel.setStatus("No hay páginas cargadas");
+        try {
+          if (controlPanel.virtualPageValueLabel != null) controlPanel.virtualPageValueLabel.setText("x");
+          if (controlPanel.physicalPageValueLabel != null) controlPanel.physicalPageValueLabel.setText("0");
+          if (controlPanel.RValueLabel != null) controlPanel.RValueLabel.setText("0");
+          if (controlPanel.MValueLabel != null) controlPanel.MValueLabel.setText("0");
+          if (controlPanel.inMemTimeValueLabel != null) controlPanel.inMemTimeValueLabel.setText("0");
+          if (controlPanel.lastTouchTimeValueLabel != null) controlPanel.lastTouchTimeValueLabel.setText("0");
+          if (controlPanel.lowValueLabel != null) controlPanel.lowValueLabel.setText("0");
+          if (controlPanel.highValueLabel != null) controlPanel.highValueLabel.setText("0");
+          if (controlPanel.segmentLabel != null) controlPanel.segmentLabel.setText("");
+        } catch (Exception e) {
+          // proteger contra versiones distintas del ControlPanel
+        }
+      }
+      return;
+    }
+
     Page page = ( Page ) memVector.elementAt( pageNum );
-    controlPanel.paintPage( page );
+    if (controlPanel != null) {
+      try {
+        controlPanel.paintPage( page );
+      } catch (Exception e) {
+        controlPanel.setStatus("Error al mostrar página");
+      }
+    }
   }
 
-  // NUEVO: obtiene el segmento para una página
+  // NUEVO: obtiene el segmento para una pagina
   public int getSegmentForPage(int pageNum) {
     for (int s = 0; s < SEGMENTS.length; s++) {
       for (int p = 0; p < SEGMENTS[s].length; p++) {
@@ -402,15 +437,36 @@ public class Kernel extends Thread
     return -1;
   }
 
+  /**
+   * Devuelve el numero de pagina virtual correspondiente a una direccion virtual.
+   */
+  public int pageForAddress(long addr) {
+    if (block <= 0) return -1;
+    return (int)(addr / block);
+  }
+
+  /**
+   * Formatea una direccion segun el radix configurado (addressradix).
+   * Para hex devuelve en minusculas (coherente con Long.toHexString).
+   */
+  public String formatAddress(long addr) {
+    int radix = (int) Kernel.addressradix;
+    if (radix == 16) return Long.toHexString(addr);
+    if (radix == 10) return Long.toString(addr, 10);
+    if (radix == 8)  return Long.toString(addr, 8);
+    if (radix == 2)  return Long.toString(addr, 2);
+    return Long.toString(addr, 10);
+  }
+
   private void printLogFile(String message)
   {
     String line;
     String temp = "";
 
     File trace = new File(output);
-    if (trace.exists()) 
+    if (trace.exists())
     {
-      try 
+      try
       {
         DataInputStream in = new DataInputStream( new FileInputStream( output ) );
         while ((line = in.readLine()) != null) {
@@ -418,89 +474,130 @@ public class Kernel extends Thread
         }
         in.close();
       }
-      catch ( IOException e ) 
+      catch ( IOException e )
       {
-        /* Do nothing */ 
+        /* Do nothing */
       }
     }
-    try 
+    try
     {
       PrintStream out = new PrintStream( new FileOutputStream( output ) );
       out.print( temp );
       out.print( message );
       out.close();
-    } 
-    catch (IOException e) 
+    }
+    catch (IOException e)
     {
-      /* Do nothing */ 
+      /* Do nothing */
     }
   }
 
   public void run()
   {
     step();
-    while (runs != runcycles) 
+    while (runs != runcycles)
     {
-      try 
+      try
       {
         Thread.sleep(2000);
-      } 
-      catch(InterruptedException e) 
-      {  
-        /* Do nothing */ 
+      }
+      catch(InterruptedException e)
+      {
+        /* Do nothing */
       }
       step();
-    }  
+    }
   }
 
   public void step()
-  {
+{
+    if (instructVector == null || instructVector.size() == 0 || runs >= instructVector.size()) {
+        if (controlPanel != null) {
+            controlPanel.statusValueLabel.setText("ERROR: No hay instrucciones para ejecutar.");
+        }
+        return;
+    }
     int i = 0;
 
     Instruction instruct = ( Instruction ) instructVector.elementAt( runs );
     int segStart = -1, segEnd = -1, pageStart = -1, pageEnd = -1;
     boolean errorSegment = false;
     controlPanel.instructionValueLabel.setText( instruct.inst );
+
+    // Etiquetas para mostrar la pagina o rango de paginas en la base seleccionada
+    String basePrefix = "";
+    int radix = addressradix;
+    switch (radix) {
+        case 16: basePrefix = "0x"; break;
+        case 8: basePrefix = "0"; break;
+        case 2: basePrefix = "0b"; break;
+        default: basePrefix = ""; break;
+    }
+
     if (instruct.isRange()) {
-      controlPanel.addressValueLabel.setText(Long.toString(instruct.addr, addressradix) + " - " + Long.toString(instruct.endAddr, addressradix));
-      pageStart = Virtual2Physical.pageNum(instruct.addr, virtPageNum, block);
-      pageEnd = Virtual2Physical.pageNum(instruct.endAddr, virtPageNum, block);
-      segStart = getSegmentForPage(pageStart);
-      segEnd = getSegmentForPage(pageEnd);
-      if (segStart == -1 || segEnd == -1 || segStart != segEnd) {
-        errorSegment = true;
-      } else {
-        currentSegment = segStart;
-      }
+        controlPanel.addressValueLabel.setText(Long.toString(instruct.addr, addressradix) + " - " + Long.toString(instruct.endAddr, addressradix));
+        pageStart = Virtual2Physical.pageNum(instruct.addr, virtPageNum, block);
+        if (controlPanel.virtualPageValueLabel != null)
+            controlPanel.virtualPageValueLabel.setText(Integer.toString(pageStart));
+        segStart = getSegmentForPage(pageStart);
+        if (segStart == -1) {
+          errorSegment = true;
+        } else {
+          currentSegment = segStart;
+        }
+        pageEnd = Virtual2Physical.pageNum(instruct.endAddr, virtPageNum, block);
+        segStart = getSegmentForPage(pageStart);
+        segEnd = getSegmentForPage(pageEnd);
+
+        // Mostrar el rango de paginas en la base seleccionada (usando virtualPageValueLabel)
+        String pageStartStr = basePrefix + Long.toString(pageStart, radix);
+        String pageEndStr = basePrefix + Long.toString(pageEnd, radix);
+        if (controlPanel.virtualPageValueLabel != null)
+            controlPanel.virtualPageValueLabel.setText(pageStartStr + " - " + pageEndStr);
+
+        if (segStart == -1 || segEnd == -1 || segStart != segEnd) {
+            errorSegment = true;
+        } else {
+            currentSegment = segStart;
+        }
     } else {
-      controlPanel.addressValueLabel.setText(Long.toString( instruct.addr , addressradix ));
-      pageStart = Virtual2Physical.pageNum( instruct.addr , virtPageNum , block );
-      segStart = getSegmentForPage(pageStart);
-      if (segStart == -1) {
-        errorSegment = true;
-      } else {
-        currentSegment = segStart;
-      }
+        controlPanel.addressValueLabel.setText(Long.toString(instruct.addr, addressradix));
+        pageStart = Virtual2Physical.pageNum(instruct.addr, virtPageNum, block);
+        segStart = getSegmentForPage(pageStart);
+
+        // Mostrar la pagina en la base seleccionada (usando virtualPageValueLabel)
+        String pageStr = basePrefix + Long.toString(pageStart, radix);
+        if (controlPanel.virtualPageValueLabel != null)
+            controlPanel.virtualPageValueLabel.setText(pageStr);
+
+        if (segStart == -1) {
+            errorSegment = true;
+        } else {
+            currentSegment = segStart;
+        }
     }
 
     if (errorSegment) {
-      controlPanel.pageFaultValueLabel.setText("ERROR SEGMENTO");
-      if (controlPanel.segmentLabel != null) controlPanel.segmentLabel.setText("Error: Dirección fuera de segmento");
-      runs++;
-      return;
+        controlPanel.pageFaultValueLabel.setText("ERROR SEGMENTO");
+        if (controlPanel.segmentLabel != null) controlPanel.segmentLabel.setText("Error: Direccion fuera de segmento");
+        runs++;
+        return;
     } else {
-      if (controlPanel.segmentLabel != null) controlPanel.segmentLabel.setText("S" + (currentSegment+1));
-      // pageFault label will be updated per-page below
+        if (controlPanel.segmentLabel != null) controlPanel.segmentLabel.setText("S" + (currentSegment+1));
+        // pageFault label will be updated per-page below
     }
 
-    // Delegar manejo de page-faults y actualización de bits R/M a PageFault/MemoryManagement
+    // Delegar manejo de page-faults y actualizacion de bits R/M a PageFault/MemoryManagement
     if (instruct.isRange()) {
+      boolean pageFaultOccurred = false;
       for (int p = pageStart; p <= pageEnd; p++) {
         Page page = (Page) memVector.elementAt(p);
-        if (page.physical == -1) {
+        boolean wasNotPresent = (page.physical == -1);
+        if (wasNotPresent) {
           // delega al algoritmo de reemplazo en PageFault
           PageFault.replacePage(memVector, virtPageNum, p, controlPanel);
           controlPanel.pageFaultValueLabel.setText("YES");
+          pageFaultOccurred = true;
         } else {
           controlPanel.pageFaultValueLabel.setText("NO");
         }
@@ -513,23 +610,41 @@ public class Kernel extends Thread
         // actualizar timestamps
         page.lastTouchTime = runs * 10;
       }
-      // pintar la primera página del rango
+      // pintar la primera pagina del rango
       getPage(pageStart);
+
+      // Actualizar pageFault label global para la instruccion
+      controlPanel.pageFaultValueLabel.setText(pageFaultOccurred ? "YES" : "NO");
+
+      // Construir y escribir mensaje de log (rango)
+      String addrRangeStr = formatAddress(instruct.addr) + " - " + formatAddress(instruct.endAddr);
+      String status = pageFaultOccurred ? "page fault" : "okay";
+      String messageRange = instruct.inst + " " + addrRangeStr + " ... " + status + " (pages " + pageStart + "-" + pageEnd + ")" + lineSeparator;
+      if (doStdoutLog) System.out.print(messageRange);
+      if (doFileLog && output != null) printLogFile(messageRange);
     } else {
       Page page = (Page) memVector.elementAt(pageStart);
-      if (page.physical == -1) {
+      boolean wasNotPresent = (page.physical == -1);
+      if (wasNotPresent) {
         PageFault.replacePage(memVector, virtPageNum, pageStart, controlPanel);
         controlPanel.pageFaultValueLabel.setText("YES");
       } else {
         controlPanel.pageFaultValueLabel.setText("NO");
       }
-      // marcar R y M según instrucción
+      // marcar R y M segun instruccion
       page.R = 1;
       if ("WRITE".equals(instruct.inst)) {
         page.M = 1;
       }
       page.lastTouchTime = runs * 10;
       getPage(pageStart);
+
+      // Construir y escribir mensaje de log (direccion unica)
+      String addrStr = formatAddress(instruct.addr);
+      String status = wasNotPresent ? "page fault" : "okay";
+      String message = instruct.inst + " " + addrStr + " ... " + status + " (page " + pageStart + ")" + lineSeparator;
+      if (doStdoutLog) System.out.print(message);
+      if (doFileLog && output != null) printLogFile(message);
     }
 
     runs++;
@@ -553,7 +668,7 @@ public class Kernel extends Thread
     controlPanel.lowValueLabel.setText( "0" ) ;
     controlPanel.highValueLabel.setText( "0" ) ;
     if (controlPanel.segmentLabel != null) controlPanel.segmentLabel.setText("");
+    // eliminar referencia a pageInputValueLabel inexistente
     init( command_file , config_file );
   }
-
 }
